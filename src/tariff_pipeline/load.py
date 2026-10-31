@@ -3,8 +3,10 @@
 Targets
 -------
 duckdb    local file warehouse (default; no cloud account needed)
-bigquery  uploads each CSV to a GCS landing bucket, then runs a BigQuery load
-          job into the `raw` dataset (WRITE_TRUNCATE, every column STRING).
+bigquery  loads each CSV into the `raw` dataset (WRITE_TRUNCATE, every column
+          STRING). With a GCS bucket configured, files are staged in the bucket
+          first; without one, they are loaded straight from disk, which works in
+          the BigQuery sandbox (no billing account, no credit card).
 
 Columns are loaded as text on purpose: casting happens in dbt staging models,
 where bad values surface as failing tests instead of failed loads.
@@ -46,31 +48,39 @@ def load_duckdb(staged: Path, db_path: str) -> dict:
     return counts
 
 
-def load_bigquery(staged: Path, project: str, bucket: str, dataset: str = "raw",
+def load_bigquery(staged: Path, project: str, bucket: str | None = None, dataset: str = "raw",
                   location: str = "US") -> dict:
-    from google.cloud import bigquery, storage
+    from google.cloud import bigquery
 
-    gcs = storage.Client(project=project).bucket(bucket)
     bq = bigquery.Client(project=project, location=location)
+    ds = bigquery.Dataset(f"{project}.{dataset}")
+    ds.location = location
+    bq.create_dataset(ds, exists_ok=True)
+    gcs = None
+    if bucket:
+        from google.cloud import storage
+
+        gcs = storage.Client(project=project).bucket(bucket)
+
     counts = {}
     for t in TABLES:
         f = staged / f"{t}.csv"
-        blob = gcs.blob(f"staged/{t}.csv")
-        blob.upload_from_filename(str(f))
-        schema = [bigquery.SchemaField(c, "STRING") for c in _header(f)]
-        job = bq.load_table_from_uri(
-            f"gs://{bucket}/staged/{t}.csv",
-            f"{project}.{dataset}.{t}",
-            job_config=bigquery.LoadJobConfig(
-                source_format=bigquery.SourceFormat.CSV,
-                skip_leading_rows=1,
-                schema=schema,
-                allow_quoted_newlines=True,
-                write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
-            ),
+        cfg = bigquery.LoadJobConfig(
+            source_format=bigquery.SourceFormat.CSV,
+            skip_leading_rows=1,
+            schema=[bigquery.SchemaField(c, "STRING") for c in _header(f)],
+            allow_quoted_newlines=True,
+            write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
         )
+        table_id = f"{project}.{dataset}.{t}"
+        if gcs is not None:
+            gcs.blob(f"staged/{t}.csv").upload_from_filename(str(f))
+            job = bq.load_table_from_uri(f"gs://{bucket}/staged/{t}.csv", table_id, job_config=cfg)
+        else:
+            with open(f, "rb") as fh:
+                job = bq.load_table_from_file(fh, table_id, job_config=cfg)
         job.result()
-        counts[t] = bq.get_table(f"{project}.{dataset}.{t}").num_rows
+        counts[t] = bq.get_table(table_id).num_rows
     return counts
 
 
@@ -88,9 +98,9 @@ def main() -> None:
     if a.target == "duckdb":
         counts = load_duckdb(staged, a.duckdb_path)
     else:
-        if not (a.project and a.bucket):
-            ap.error("bigquery target needs --project and --bucket (or GCP_PROJECT / GCS_LANDING_BUCKET)")
-        counts = load_bigquery(staged, a.project, a.bucket, location=a.location)
+        if not a.project:
+            ap.error("bigquery target needs --project (or GCP_PROJECT)")
+        counts = load_bigquery(staged, a.project, a.bucket or None, location=a.location)
     for t, n in counts.items():
         print(f"raw.{t}: {n} rows")
 
