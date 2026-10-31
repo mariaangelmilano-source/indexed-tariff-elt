@@ -1,0 +1,16 @@
+version: 2
+
+models:
+  - name: rpt_batch_scorecard
+    description: Sign-off view per price log (certified / needs_review) with the count of each defect type.
+    columns:
+      - name: requirement_id
+        tests: [unique, not_null]
+      - name: certification_status
+        tests:
+          - accepted_values:
+              values: ["certified", "needs_review"]
+  - name: rpt_missed_adjustments
+    description: Plans present in the previous log and absent from the current one.
+  - name: rpt_revenue_split_check
+    description: Bundle components that do not add up to 100 % or to the bundle price.

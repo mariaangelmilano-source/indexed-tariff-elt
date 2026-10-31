@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: stg_tariff_batches
+    description: One row per price log (tariff adjustment), with its official FX rate.
+    columns:
+      - name: requirement_id
+        tests: [unique, not_null]
+      - name: effective_date
+        tests: [not_null]
+      - name: official_fx_rate
+        tests: [not_null, positive]
+      - name: batch_seq
+        tests: [unique, not_null]
+
+  - name: stg_revenue_split
+    columns:
+      - name: plan_cbs_code
+        tests: [not_null]
+      - name: split_pct
+        tests: [not_null]

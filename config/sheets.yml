@@ -1,0 +1,88 @@
+# Layout contract for the "price log" workbook (bitácora de precios).
+# Each sheet is read from a fixed header row, every cell is read as text
+# (types are enforced later in dbt), and rows that miss a required field
+# are sent to quarantine instead of being silently dropped.
+
+metadata_sheet:
+  name: "Informacion General"
+  # key/value pairs in columns A:B
+  fields:
+    requirement_id: "Requerimiento"
+    effective_date: "Fecha de vigencia"
+    official_fx_rate: "Tasa oficial"
+    cut_number: "Corte"
+
+sheets:
+  prepaid_plans:
+    sheet_name: "Planes y SVAs Prepago"
+    header_row: 3
+    required: [cbs_code, plan_name, price_usd, price_local_ex_vat]
+    columns:
+      "Producto": product
+      "Tipo de Producto": product_type
+      "Codigo Plataforma": platform_code
+      "Codigo BO": bo_code
+      "Codigo CBS": cbs_code
+      "Nombre del Plan": plan_name
+      "Unidad de Tasacion": rating_unit
+      "Tarifa USD": price_usd
+      "Renta Basica Mensual sin IVA": price_local_ex_vat
+
+  postpaid_plans:
+    sheet_name: "Planes y SVAs Pospago"
+    header_row: 3
+    required: [cbs_code, plan_name, price_usd, price_local_ex_vat]
+    columns:
+      "Producto": product
+      "Tipo de Producto": product_type
+      "Codigo Plataforma": platform_code
+      "Codigo BO": bo_code
+      "Codigo CBS": cbs_code
+      "Nombre del Plan": plan_name
+      "Segmento": segment
+      "Tarifa USD": price_usd
+      "Renta Basica Mensual sin IVA": price_local_ex_vat
+
+  revenue_split:
+    sheet_name: "Distrib de Ingresos"
+    header_row: 3
+    required: [plan_cbs_code, component_code, split_pct]
+    columns:
+      "Codigo CBS Plan": plan_cbs_code
+      "Nombre del Plan": plan_name
+      "Codigo Componente": component_code
+      "Componente": component_name
+      "Porcentaje": split_pct
+      "Monto sin IVA": component_amount_local
+
+  b2b_access:
+    sheet_name: "CPA NNG PBX"
+    header_row: 10
+    required: [cbs_code, plan_name, price_usd, price_local_ex_vat]
+    columns:
+      "Producto": product
+      "Tipo de Producto": product_type
+      "Codigo Plataforma": platform_code
+      "Codigo BO": bo_code
+      "Codigo CBS": cbs_code
+      "Ancho de Banda (Kbps)": bandwidth_kbps
+      "Distancia": distance
+      "Nombre del Plan": plan_name
+      "Tarifa USD": price_usd
+      "Renta Basica Mensual sin IVA": price_local_ex_vat
+
+  b2b_inbound_access:
+    sheet_name: "CPA Entrante"
+    header_row: 10
+    required: [cbs_code, plan_name, price_usd, price_local_ex_vat]
+    columns:
+      "Producto": product
+      "Tipo de Producto": product_type
+      "Codigo Plataforma": platform_code
+      "Codigo BO": bo_code
+      "Codigo CBS": cbs_code
+      "Ancho de Banda (Kbps)": bandwidth_kbps
+      "Distancia": distance
+      "Nombre del Plan": plan_name
+      "Tarifa USD": price_usd
+      "Renta Basica Mensual sin IVA": price_local_ex_vat

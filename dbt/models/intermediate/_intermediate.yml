@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: int_plan_prices
+    tests:
+      - unique_combination:
+          columns: [requirement_id, cbs_code]
+    columns:
+      - name: price_usd
+        tests: [not_null, positive]
+      - name: price_local_ex_vat
+        tests: [not_null, positive]
+      - name: business_line
+        tests:
+          - accepted_values:
+              values: ["B2C", "B2B"]
+      - name: billing_mode
+        tests:
+          - accepted_values:
+              values: ["prepaid", "postpaid"]
+
+  - name: int_tariff_events
+    columns:
+      - name: requirement_id
+        tests:
+          - relationships:
+              to: ref('stg_tariff_batches')
+              field: requirement_id

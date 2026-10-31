@@ -1,0 +1,5 @@
+-r requirements.txt
+dbt-bigquery>=1.9,<2.0
+google-cloud-bigquery>=3.25
+google-cloud-storage>=2.18
+db-dtypes>=1.3

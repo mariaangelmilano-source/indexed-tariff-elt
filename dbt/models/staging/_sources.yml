@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Text-typed tables loaded from the price-log workbooks (see src/tariff_pipeline).
+    schema: raw
+    tables:
+      - name: tariff_batches
+        description: One row per price-log workbook (tariff adjustment / "corte").
+      - name: prepaid_plans
+      - name: postpaid_plans
+      - name: revenue_split
+      - name: b2b_access
+      - name: b2b_inbound_access
+      - name: quarantine
+        description: Rows rejected at extraction, with the reason.

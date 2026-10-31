@@ -1,0 +1,18 @@
+[project]
+name = "indexed-tariff-elt"
+version = "0.1.0"
+description = "Excel price logs -> tested cloud warehouse models for telecom tariff certification (synthetic data)."
+requires-python = ">=3.10"
+authors = [{ name = "María Ángel Milano" }]
+license = { text = "MIT" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"

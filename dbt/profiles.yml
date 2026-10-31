@@ -1,0 +1,19 @@
+# Credentials come from environment variables; nothing secret lives in git.
+indexed_tariffs:
+  target: "{{ env_var('DBT_TARGET', 'duckdb') }}"
+  outputs:
+    duckdb:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '../data/warehouse.duckdb') }}"
+      schema: main
+      threads: 4
+    bigquery:
+      type: bigquery
+      method: "{{ env_var('BQ_AUTH_METHOD', 'oauth') }}"   # oauth (gcloud login) or service-account
+      keyfile: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS', '') }}"
+      project: "{{ env_var('GCP_PROJECT', 'set-GCP_PROJECT') }}"
+      dataset: analytics
+      location: "{{ env_var('BQ_LOCATION', 'US') }}"
+      threads: 4
+      job_execution_timeout_seconds: 300
+      priority: interactive

@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: dim_plan
+    description: Current attributes and price of every plan seen in the price logs.
+    columns:
+      - name: cbs_code
+        description: Billing-platform plan code (synthetic).
+        tests: [unique, not_null]
+
+  - name: fct_tariff_history
+    description: Price history per plan; each version is valid until the day before the next adjustment.
+    columns:
+      - name: tariff_version_id
+        tests: [unique, not_null]
+      - name: cbs_code
+        tests:
+          - relationships:
+              to: ref('dim_plan')
+              field: cbs_code
+
+  - name: fct_fx_alignment
+    description: Was each local price converted correctly from its USD reference?
+    tests:
+      - unique_combination:
+          columns: [requirement_id, cbs_code]
+    columns:
+      - name: alignment_status
+        tests:
+          - accepted_values:
+              values: ["aligned", "stale_price", "misconverted"]

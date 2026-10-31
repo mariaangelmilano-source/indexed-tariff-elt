@@ -1,0 +1,58 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pipeline:
+    name: lint, unit tests, end-to-end dbt build (DuckDB)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check src tests airflow
+      - name: pytest (includes generate -> extract -> load -> dbt build -> assertions)
+        run: pytest -q
+      - name: dbt docs
+        run: |
+          make data extract load
+          cd dbt && DUCKDB_PATH=../data/warehouse.duckdb dbt build --profiles-dir . --target duckdb
+          DUCKDB_PATH=../data/warehouse.duckdb dbt docs generate --profiles-dir . --target duckdb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dbt-docs
+          path: dbt/target
+
+  airflow-dag:
+    name: Airflow DAG imports
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          pip install "apache-airflow==2.10.5" \
+            --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.10.5/constraints-3.12.txt"
+      - run: |
+          airflow db migrate
+          python -c "from airflow.models import DagBag; b = DagBag('airflow/dags', include_examples=False); assert not b.import_errors, b.import_errors; print(list(b.dags))"
+
+  terraform:
+    name: Terraform fmt + validate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform fmt -check -recursive
+      - run: terraform init -backend=false
+      - run: terraform validate

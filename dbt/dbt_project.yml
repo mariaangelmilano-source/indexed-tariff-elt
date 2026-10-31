@@ -1,0 +1,32 @@
+name: indexed_tariffs
+version: "0.1.0"
+config-version: 2
+profile: indexed_tariffs
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  # A local price counts as correctly converted when it is within this
+  # relative distance of price_usd * official_fx_rate (rounding noise).
+  fx_tolerance_pct: 0.005
+  # Revenue-split components must add up to 100 % within this tolerance.
+  split_tolerance_pct: 0.01
+
+models:
+  indexed_tariffs:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: staging
+      +materialized: view
+    marts:
+      +schema: analytics
+      +materialized: table
+    reports:
+      +schema: analytics
+      +materialized: table
