@@ -4,7 +4,9 @@ Skipped automatically when duckdb / dbt are not installed.
 """
 
 import os
+import shutil
 import subprocess
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -13,9 +15,7 @@ from tariff_pipeline.load import load_duckdb
 
 duckdb = pytest.importorskip("duckdb")
 if shutil.which("dbt") is None:
-    pytest.skip("dbt CLI not installed", allow_module_level=True)
-
-from tariff_pipeline.load import load_duckdb  
+    pytest.skip("dbt CLI not installed", allow_module_level=True) 
 
 DBT_DIR = Path(__file__).resolve().parents[1] / "dbt"
 
