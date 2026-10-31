@@ -26,7 +26,7 @@ def warehouse(pipeline_dirs):
     load_duckdb(pipeline_dirs["staged"], str(db))
     env = {**os.environ, "DUCKDB_PATH": str(db), "DBT_TARGET": "duckdb"}
     res = subprocess.run(["dbt", "build", "--profiles-dir", ".", "--target", "duckdb"],
-                         cwd=DBT_DIR, env=env, capture_output=True, text=True)
+                     cwd=DBT_DIR, env=env, capture_output=True, text=True, check=False)
     assert res.returncode == 0, res.stdout[-4000:] + res.stderr[-2000:]
     con = duckdb.connect(str(db), read_only=True)
     yield con
