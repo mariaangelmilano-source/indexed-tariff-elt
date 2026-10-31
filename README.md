@@ -1,3 +1,4 @@
+![ci](https://github.com/mariaangelmilano-source/indexed-tariff-elt/actions/workflows/ci.yml/badge.svg)
 # Indexed Tariff ELT
 
 **From Excel price logs to a tested cloud warehouse: automating tariff certification for a telecom operator that indexes prices to USD.**
