@@ -132,7 +132,7 @@ def generate(out_dir: Path, start: date, months: int, seed: int, defect_rate: fl
 
             def defect(kind: str, **info):
                 manifest["injected_defects"].append(
-                    {"requirement_id": requirement_id, "kind": kind, **info})
+                    {"requirement_id": requirement_id, "kind": kind, **info}) # noqa: B023
             for key, spec in layout["sheets"].items():
                 headers = list(spec["columns"].keys())
                 field_of = spec["columns"]
