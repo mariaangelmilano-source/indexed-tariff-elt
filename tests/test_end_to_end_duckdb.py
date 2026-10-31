@@ -15,7 +15,7 @@ duckdb = pytest.importorskip("duckdb")
 if shutil.which("dbt") is None:
     pytest.skip("dbt CLI not installed", allow_module_level=True)
 
-from tariff_pipeline.load import load_duckdb  # noqa: E402
+from tariff_pipeline.load import load_duckdb  
 
 DBT_DIR = Path(__file__).resolve().parents[1] / "dbt"
 
