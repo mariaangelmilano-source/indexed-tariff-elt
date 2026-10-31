@@ -130,10 +130,9 @@ def generate(out_dir: Path, start: date, months: int, seed: int, defect_rate: fl
             meta.append([mf["official_fx_rate"], fx])
             meta.append([mf["cut_number"], cut])
 
-            def defect(requirement_id, kind: str, **info):
+            def defect(kind: str, **info):
                 manifest["injected_defects"].append(
                     {"requirement_id": requirement_id, "kind": kind, **info})
-
             for key, spec in layout["sheets"].items():
                 headers = list(spec["columns"].keys())
                 field_of = spec["columns"]
