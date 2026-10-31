@@ -15,7 +15,7 @@ def test_generation_is_deterministic(tmp_path):
 
 def test_workbook_matches_layout_contract(pipeline_dirs):
     layout = load_layout()
-    first = sorted(pipeline_dirs["landing"].glob("*.xlsx"))[0]
+    first = min(pipeline_dirs["landing"].glob("*.xlsx"))
     wb = load_workbook(first, read_only=True)
     assert layout["metadata_sheet"]["name"] in wb.sheetnames
     for spec in layout["sheets"].values():
